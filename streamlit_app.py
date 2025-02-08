@@ -1,5 +1,21 @@
 import streamlit as st
 from openai import OpenAI
+import base64
+from pydub import AudioSegment
+import io
+import asyncio
+from websockets.asyncio.server import serve, connect
+
+async def send_audio(audiofile, web_url):
+    audiofile.seek(0) # start reading at beginning of audio file
+    audio_data = audiofile.read() # binary content
+
+    async with connect(web_url) as websocket:
+        await websocket.send(audiofile)
+
+        encoded_audio = await websocket.recv()
+    
+    return encoded_audio
 
 # Show title and description.
 st.title("📄 Document question answering")
@@ -19,22 +35,22 @@ else:
     # Create an OpenAI client.
     client = OpenAI(api_key=openai_api_key)
 
-    # Let the user upload a file via `st.file_uploader`.
-    uploaded_file = st.file_uploader(
-        "Upload a document (.txt or .md)", type=("txt", "md")
-    )
+    # Let the user record audio.
+
+    uploaded_audio = st.audio_input("Record message:")
+
 
     # Ask the user for a question via `st.text_area`.
     question = st.text_area(
         "Now ask a question about the document!",
         placeholder="Can you give me a short summary?",
-        disabled=not uploaded_file,
+        disabled=not uploaded_audio,
     )
 
-    if uploaded_file and question:
+    if uploaded_audio and question:
 
         # Process the uploaded file and question.
-        document = uploaded_file.read().decode()
+        document = uploaded_audio.read().decode()
         messages = [
             {
                 "role": "user",
