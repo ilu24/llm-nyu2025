@@ -5,19 +5,24 @@ from pydub import AudioSegment
 import io
 import asyncio
 from websockets.asyncio.server import serve, connect
+from langchain_openai import ChatOpenAI
+
 
 async def send_audio(audiofile, web_url):
-    audiofile.seek(0) # start reading at beginning of audio file
-    audio_data = audiofile.read() # binary content
+    with open(audiofile, "rb") as f:
+        audio_file = f.read()
 
+    audio_b64 = base64.b64encode(audio_file).decode()
+  
     async with connect(web_url) as websocket:
-        await websocket.send(audiofile)
+        # sends in b64
+        await websocket.send(audio_b64)
+        print("File sent to server")
 
-        encoded_audio = await websocket.recv()
+        response = await websocket.recv()
     
-    return encoded_audio
+    return response
 
-# Show title and description.
 st.title("📄 Document question answering")
 st.write(
     "Upload a document below and ask a question about it – GPT will answer! "
@@ -25,8 +30,7 @@ st.write(
 )
 
 # Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
+
 openai_api_key = st.text_input("OpenAI API Key", type="password")
 if not openai_api_key:
     st.info("Please add your OpenAI API key to continue.", icon="🗝️")
@@ -39,31 +43,5 @@ else:
 
     uploaded_audio = st.audio_input("Record message:")
 
-
-    # Ask the user for a question via `st.text_area`.
-    question = st.text_area(
-        "Now ask a question about the document!",
-        placeholder="Can you give me a short summary?",
-        disabled=not uploaded_audio,
-    )
-
-    if uploaded_audio and question:
-
-        # Process the uploaded file and question.
-        document = uploaded_audio.read().decode()
-        messages = [
-            {
-                "role": "user",
-                "content": f"Here's a document: {document} \n\n---\n\n {question}",
-            }
-        ]
-
-        # Generate an answer using the OpenAI API.
-        stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=messages,
-            stream=True,
-        )
-
-        # Stream the response to the app using `st.write_stream`.
-        st.write_stream(stream)
+    text = send_audio(uploaded_audio)
+    st.write_stream(text)
