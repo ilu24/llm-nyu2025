@@ -1,10 +1,10 @@
 import streamlit as st
 from openai import OpenAI
 import base64
-from pydub import AudioSegment
 import io
 import asyncio
-from websockets.asyncio.server import serve, connect
+from websockets.asyncio.server import serve
+from websockets import connect
 from langchain_openai import ChatOpenAI
 
 
@@ -43,5 +43,5 @@ else:
 
     uploaded_audio = st.audio_input("Record message:")
 
-    text = send_audio(uploaded_audio)
+    text = send_audio(uploaded_audio,"ws://localhost:8765")
     st.write_stream(text)
