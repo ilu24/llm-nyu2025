@@ -23,9 +23,9 @@ async def send_audio(audiofile, web_url):
     
     return response
 
-st.title("📄 Document question answering")
+st.title("📄 Breaking Bad LLMs")
 st.write(
-    "Upload a document below and ask a question about it – GPT will answer! "
+    "Record an audio!"
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
 )
 
@@ -43,5 +43,6 @@ else:
 
     uploaded_audio = st.audio_input("Record message:")
 
-    text = send_audio(uploaded_audio,"ws://localhost:8765")
+    ws_url = "ws://localhost:8765"
+    text = send_audio(uploaded_audio, ws_url)
     st.write_stream(text)
