@@ -45,4 +45,4 @@ else:
 
     ws_url = "ws://localhost:8765"
     text = send_audio(uploaded_audio, ws_url)
-    st.write_stream(text)
+    st.write(text)
