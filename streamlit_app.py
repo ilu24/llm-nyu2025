@@ -9,8 +9,7 @@ from langchain_openai import ChatOpenAI
 
 
 async def send_audio(audiofile, web_url):
-    with open(audiofile, "rb") as f:
-        audio_file = f.read()
+    audio_file = audiofile.read()
 
     audio_b64 = base64.b64encode(audio_file).decode()
   
@@ -44,5 +43,8 @@ else:
     uploaded_audio = st.audio_input("Record message:")
 
     ws_url = "ws://localhost:8765"
-    text = send_audio(uploaded_audio, ws_url)
-    st.write(text)
+
+    if uploaded_audio is not None:
+    # Use asyncio to run the WebSocket function and wait for the response
+        text = asyncio.run(send_audio(uploaded_audio, ws_url))
+        st.write(text)
